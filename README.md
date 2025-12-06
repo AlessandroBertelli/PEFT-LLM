@@ -7,34 +7,37 @@ The solution integrates **Unsloth** for memory-efficient fine-tuning, **llama.cp
 
 ---
 
-## 2. Methodology: Dual-Approach Optimization
-To achieve a scalable system, we implemented improvements via two mutually exclusive approaches: **Model-Centric** (Architecture/Hyperparameters) and **Data-Centric** (Dataset Quality).
+## 2. Methodology: Model-Centric Optimization
+To achieve scalability and performance, we focused on a **Model-Centric** approach (also because our solution implement a custom RAG and is not a specific LLM assistant). This involved architectural changes and hyperparameter tuning specifically designed to enable high-performance inference on CPU hardware.
 
-### (a) Model-Centric Approach: Architecture & Quantization
-We prioritized inference latency and throughput on CPU hardware over raw parameter count.
+### (a) Foundation Model Selection (3B vs 8B)
+Instead of defaulting to the largest available model, we prioritized **inference latency** and **throughput**.
 
-* **Architecture Selection (3B vs 8B):**
-    * **Strategy:** We conducted a comparative analysis between **Llama-3.2-3B-Instruct** and **Llama-3.1-8B**.
-    * **Observation:** The 8B model requires significantly higher VRAM and computation, resulting in sluggish CPU inference.
-    * **Decision:** We selected the **3B model**. Despite being ~60% smaller, it retains strong reasoning capabilities while offering a **2.5x - 4x speedup** in token generation on local hardware.
-* **Hyperparameter Tuning:**
-    * We utilized **Unsloth** on a standard Google Colab instance (Tesla T4).
-    * **Optimization:** We used `r=16` and `lora_alpha=16` with 4-bit quantization (QLoRA) to fit the training process within the 16GB VRAM limit of the T4, ensuring stable convergence without Out-Of-Memory (OOM) errors.
-* **Quantization:**
-    * Post-training, we converted the model to **GGUF format (Q4_K_M)**. This reduces the memory footprint to ~2.2GB, allowing the LLM to run alongside the RAG vector store in system RAM.
+* **Strategy:** We analyzed the trade-offs between **Llama-3.2-3B-Instruct** and **Llama-3.1-8B**.
+* **Observation:** The 8B model proved too computationally heavy for local CPU deployment, resulting in high latency and excessive RAM consumption that competed with the RAG vector store.
+* **Decision:** We selected the **Llama-3.2-3B** architecture. Despite being ~60% smaller, it retains strong general-purpose reasoning capabilities while offering a **2.5x - 4x speedup** in token generation on local hardware.
 
-### (b) Data-Centric Approach: Dataset Quality
-We replaced standard, noisy datasets with a high-quality, curated alternative to improve instruction adherence.
+### (b) Hyperparameter Tuning & Training
+* **Environment:** Training was conducted on Google Colab (Tesla T4 GPU).
+* **Optimization:** We utilized **Unsloth** with QLoRA (4-bit quantization) to fit the training process within limited VRAM.
+* **Configuration:**
+    * `r=16` and `lora_alpha=16`: Optimized to balance adapter plasticity with memory constraints.
+	* `num_train_epochs = 1` full training
+       	*  learning_rate = 2e-4,
 
-* **Dataset:** **[FineTome-100k](https://huggingface.co/datasets/mlabonne/FineTome-100k)**.
-* **Improvement:** Unlike basic datasets (e.g., raw Alpaca or ShareGPT) which often contain duplicated or short/incoherent responses, FineTome-100k is filtered for educational value and reasoning quality.
-* **Result:** The model produces more coherent, context-aware answers suitable for a general-purpose assistant, surpassing the baseline performance of models trained on raw web-scraped data.
+
+* **Constraint Management:** We specifically tuned the pipeline to complete 1 epoch in approximately **22 hours** on the T4 GPU, a significant efficiency gain compared to the estimated 50+ hours required for the 8B model.
+
+### (c) Quantization for Inference
+* **Tool:** `llama.cpp`
+* **Technique:** Post-training, we converted the model to **GGUF format with 4-bit quantization (Q4_K_M)**.
+* **Result:** This reduced the model's memory footprint from ~6GB (FP16) to ~2.2GB, allowing the LLM to run smoothly alongside the RAG vector store (`FAISS`) in standard system RAM.
 
 ---
 
 ## 3. Performance & Experiments
 
-We performed a comparative analysis to justify the selection of the 3B model for local CPU deployment.
+The following table summarizes the experimental results that justified our selection of the 3B model over the 8B baseline.
 
 | Metric | **Llama 3.2 3B (Selected)** | Llama 3.1 8B (Discarded) | Conclusion |
 | :--- | :--- | :--- | :--- |
@@ -62,7 +65,7 @@ We performed a comparative analysis to justify the selection of the 3B model for
 3.  **Inference (Local UI):**
     * **Interface:** Streamlit.
     * **Engine:** `llama-cpp-python`.
-    * **Memory Management:** Implemented aggressive Garbage Collection (`gc.collect`) to manage RAM between RAG and Chat modes.
+    * **Memory Management:** Implemented aggressive Garbage Collection (`gc.collect`) in the Python app to manage RAM transitions between RAG and Chat modes.
 
 ---
 
