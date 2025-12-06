@@ -44,7 +44,7 @@ The following table summarizes the experimental results that justified our selec
 | **Parameters** | 3.21 Billion | 8.03 Billion | 3B is ~60% smaller |
 | **Training Time (1 epoch)** | **~22 hours (T4 GPU)** | ~50+ hours (Est. T4) | 3B is significantly faster to fine-tune |
 | **Inference Speed (CPU)** | **High (~15-20 tok/s)** | Low (~4-5 tok/s) | 8B is too slow for interactive chat |
-| **RAM Usage (Quantized)** | ~2.2 GB | ~5.8 GB | 3B allows distinct room for RAG processes |
+| **RAM Usage (Quantized)** | ~13.2 GB | ~19.8 GB | 3B allows distinct room for RAG processes |
 | **Reasoning Quality** | Excellent for general tasks | Marginally better | Diminishing returns on 8B for this use case |
 
 **Verdict:** The **Llama 3.2 3B** is the optimal choice for this specific pipeline, offering the best trade-off between *response quality* and *user experience (latency)*.
