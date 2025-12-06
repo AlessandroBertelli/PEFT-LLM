@@ -49,6 +49,34 @@ The following table summarizes the experimental results that justified our selec
 
 **Verdict:** The **Llama 3.2 3B** is the optimal choice for this specific pipeline, offering the best trade-off between *response quality* and *user experience (latency)*.
 
+### Visual Validation of Performance Experiments
+To rigorously validate the architectural decisions, we conducted qualitative tests across three model size tiers: 1B (underpowered), 8B (overpowered), and 3B (optimal). The following visual evidence demonstrates the practical impact of model size on response quality and system stability in a local CPU environment.
+
+**Experiment A**: The "Underpowered" Baseline (1B Model)
+Initial explorations included a ~1B parameter model to establish a baseline for maximum speed. While token generation was extremely fast, the model lacked the necessary cognitive capacity for general-purpose RAG tasks.
+
+![](images/model_v1.png)
+
+The model struggles with coherent reasoning, often producing hallucinatory or irrelevant responses to standard prompts, rendering it unsuitable for a reliable RAG assistant.
+
+**Experiment B**: The Resource Bottleneck (8B Model)
+We subsequently tested the Llama 3.1 8B model to leverage its superior reasoning capabilities. However, the hardware constraints of consumer-grade CPUs became an immediate bottleneck.
+
+![](images/model_v2.png)
+
+The quantized model's RAM footprint approximated 20GB, saturating system memory and forcing aggressive OS swapping. This resulted in extremely high latency and frequently caused the Streamlit interface to crash due to memory timeouts.
+
+**Final Implementation**: The Optimal Balance (3B Model)
+The final configuration utilizes Llama 3.2 3B quantized to Q4_K_M. This architecture successfully balances the cognitive requirements of the task with the physical limitations of the hardware.
+
+![](images/model_final_fast.png)
+
+The screenshot demonstrates the high-speed token generation capabilities of the 3B model on CPU. It achieves interactive speeds while maintaining coherent, accurate general-purpose reasoning.
+
+![](images/model_final_rag.png)
+
+Full RAG Pipeline on CPU. This final validation shows the 3B model operating successfully within the Streamlit RAG application. We uploaded a short description of one of our group member, Nicolò Gandini. The model responds well based on the description provided in the short .txt file.
+
 ---
 
 ## 4. Pipeline Architecture
