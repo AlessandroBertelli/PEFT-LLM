@@ -64,7 +64,7 @@ We subsequently tested the Llama 3.1 8B model to leverage its superior reasoning
 
 ![](images/model_v2.png)
 
-The quantized model's RAM footprint approximated 20GB, saturating system memory and forcing aggressive OS swapping. This resulted in extremely high latency and frequently caused the Streamlit interface to crash due to memory timeouts.
+The quantized model's RAM footprint approximated 20GB, saturating system memory. This resulted in extremely high latency and frequently caused the Streamlit interface to crash due to memory timeouts.
 
 **Final Implementation**: The Optimal Balance (3B Model)
 The final configuration utilizes Llama 3.2 3B quantized to Q4_K_M. This architecture successfully balances the cognitive requirements of the task with the physical limitations of the hardware.
